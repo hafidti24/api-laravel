@@ -44,6 +44,8 @@ class TodoController extends Controller
     }
     public function show(Todo $todo)
     {
+        $this->authorizeOwner($todo);
+        
         return $todo;
     }
     public function update(Request $request, Todo $todo)
