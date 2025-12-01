@@ -74,7 +74,11 @@ class TodoController extends Controller
 
         $todo->save();
 
-        return $data;
+        return [
+            'title'      => $todo->title,
+            'completed'  => $todo->completed,
+            'attachment_path' => $todo->attachment_path,
+        ];
     }
     public function destroy(Todo $todo)
     {
