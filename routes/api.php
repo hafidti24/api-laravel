@@ -1,12 +1,41 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TodoController;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Public
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',    [AuthController::class, 'login']);
 
-Route::get('/health', fn() => response()->json(['status' => 'ok']));
-Route::apiResource('todos', TodoController::class);
+// Protected: semua user harus login
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+
+    // CRUD todo milik user login
+    Route::apiResource('todos', TodoController::class);
+
+    // logout
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/todos/{todo}/attachment', [TodoController::class, 'getAttachment']);
+
+    // ------------------
+    // ADMIN ONLY ROUTES
+    // ------------------
+    Route::middleware('role:admin')->group(function () {
+
+        // 1. List semua user
+        Route::get('/admin/users', function () {
+            return User::select('id', 'name', 'email', 'role', 'created_at')->get();
+        });
+
+        // 2. List semua todos
+        Route::get('/admin/todos', function () {
+            return \App\Models\Todo::with('user')->get();
+        });
+    });
+});
